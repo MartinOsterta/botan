@@ -17,26 +17,7 @@ env:
     - ANDROID_NDK=android-ndk-r20
 
   matrix:
-    - TARGET="shared"
-    - TARGET="coverage"
-    - TARGET="fuzzers"
-    - TARGET="valgrind"
-    - TARGET="cross-i386"
-    - TARGET="cross-ppc32"
-    - TARGET="cross-ppc64"
-    - TARGET="cross-arm32"
-    - TARGET="cross-arm64"
-    - TARGET="cross-mips64"
-    - TARGET="cross-win64"
-    - TARGET="cross-android-arm32"
-    - TARGET="cross-android-arm64"
-    - TARGET="gcc4.8"
     - TARGET="static"
-    - TARGET="mini-shared"
-    - TARGET="bsi"
-    - TARGET="nist"
-    - TARGET="docs"
-    - TARGET="lint"
 
 matrix:
   exclude:
