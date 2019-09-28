@@ -30,19 +30,21 @@ template<size_t LIMBS, MinWeightPolynomial P>
 void poly_double(uint8_t out[], const uint8_t in[])
    {
    uint64_t W[LIMBS];
+   uint64_t C[LIMBS];
    load_be(W, in, LIMBS);
 
    const uint64_t POLY = static_cast<uint64_t>(P);
 
-   const uint64_t carry = POLY * (W[0] >> 63);
+   for(size_t i = 0; i != LIMBS; ++i)
+      C[i] = W[(i+1) % LIMBS] >> 63;
 
-   BOTAN_IF_CONSTEXPR(LIMBS > 0)
-      {
-      for(size_t i = 0; i != LIMBS - 1; ++i)
-         W[i] = (W[i] << 1) ^ (W[i+1] >> 63);
-      }
+   C[LIMBS-1] *= POLY;
 
-   W[LIMBS-1] = (W[LIMBS-1] << 1) ^ carry;
+   for(size_t i = 0; i != LIMBS; ++i)
+      W[i] <<= 1;
+
+   for(size_t i = 0; i != LIMBS; ++i)
+      W[i] ^= C[i];
 
    copy_out_be(out, LIMBS*8, W);
    }
