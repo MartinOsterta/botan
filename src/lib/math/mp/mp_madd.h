@@ -2,6 +2,7 @@
 * Lowest Level MPI Algorithms
 * (C) 1999-2008,2013 Jack Lloyd
 *     2006 Luca Piccarreta
+*     2020 Elektrobit Automotive GmbH
 *
 * Botan is released under the Simplified BSD License (see license.txt)
 */
@@ -36,8 +37,10 @@ namespace Botan {
     #define BOTAN_MP_USE_X86_32_ASM
   #elif defined(BOTAN_TARGET_ARCH_IS_X86_64) && (BOTAN_MP_WORD_BITS == 64)
     #define BOTAN_MP_USE_X86_64_ASM
-  #endif
-
+  #elif defined(BOTAN_TARGET_ARCH_IS_X86_64) && (BOTAN_MP_WORD_BITS == 64) && defined(BOTAN_USE_GCC_INLINE_ASM)
+    #define BOTAN_MP_USE_X86_64_ASM
+  #elif defined(BOTAN_TARGET_ARCH_IS_ARM64) && (BOTAN_MP_WORD_BITS == 64) && defined(BOTAN_USE_GCC_INLINE_ASM)
+    #define BOTAN_MP_USE_ARM_64_ASM
 #endif
 
 /*
@@ -64,6 +67,19 @@ inline word word_madd2(word a, word b, word* c)
       )"
       : [a]"=a"(a), [b]"=rm"(b), [carry]"=&d"(*c)
       : "0"(a), "1"(b), [c]"g"(*c) : "cc");
+
+   return a;
+
+#elif defined(BOTAN_MP_USE_ARM_64_ASM)
+      word a_hi;
+      asm(R"(
+         umulh %[a_hi], %[a], %[b]
+         mul   %[a], %[a], %[b]
+         adds  %[a], %[a], %[carry]
+         adc   %[carry], %[a_hi], XZR
+      )"
+      : [a]"+r"(a), [carry]"+r"(*c), [a_hi]"=&r"(a_hi)
+      : [b]"r"(b) : "cc");
 
    return a;
 
@@ -116,6 +132,21 @@ inline word word_madd3(word a, word b, word c, word* d)
       )"
       : [a]"=a"(a), [b]"=rm"(b), [carry]"=&d"(*d)
       : "0"(a), "1"(b), [c]"g"(c), [d]"g"(*d) : "cc");
+
+   return a;
+
+#elif defined(BOTAN_MP_USE_ARM_64_ASM)
+   word a_hi;
+   asm(R"(
+      umulh %[a_hi], %[a], %[b]
+      mul  %[a], %[a], %[b]
+      adds %[a], %[a], %[c]
+      adc  %[a_hi], %[a_hi], XZR
+      adds %[a], %[a], %[d]
+      adc  %[d], %[a_hi], XZR
+   )"
+   : [a]"+r"(a), [a_hi]"+r"(a_hi), [d]"+r"(*d)
+   : [b]"r"(b), [c]"r"(c) : "cc");
 
    return a;
 

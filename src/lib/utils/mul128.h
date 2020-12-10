@@ -1,6 +1,7 @@
 /*
 * 64x64->128 bit multiply operation
 * (C) 2013,2015 Jack Lloyd
+*     2020 Elektrobit Automotive GmbH
 *
 * Botan is released under the Simplified BSD License (see license.txt)
 */
@@ -69,6 +70,13 @@ namespace Botan {
 #define BOTAN_FAST_64X64_MUL(a,b,lo,hi) do {                      \
    asm("mulhdu %0,%1,%2" : "=r" (*hi) : "r" (a), "r" (b) : "cc"); \
    *lo = a * b;                                                   \
+} while(0)
+
+#elif defined(BOTAN_TARGET_ARCH_IS_ARM64)
+
+#define BOTAN_FAST_64X64_MUL(a,b,lo,hi) do {                      \
+   asm("umulh %0,%1,%2" : "=r" (*hi) : "r" (a), "r" (b) : "cc");  \
+   asm("mul %0,%1,%2" : "=r" (*lo) : "r" (a), "r" (b) : "cc");    \
 } while(0)
 
 #endif
